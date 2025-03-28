@@ -1,0 +1,9 @@
+[package]
+name = "absolutechaos"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rltk = "~0.8"
+specs = "=0.16.1"
+specs-derive = "=0.4.1"

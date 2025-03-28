@@ -1,6 +1,6 @@
 # absolutechaos
 
-Rougelike RPG dungeon crawler with a text-based user interface and entity-component system architecture.
+Rougelike RPG dungeon crawler with a text-based user interface and entity-component system architecture. Think [NetHack](https://en.wikipedia.org/wiki/NetHack), but poorly written.
 
 > [!NOTE]  
 > This project is under development.

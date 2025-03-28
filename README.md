@@ -1,7 +1,23 @@
 # absolutechaos
 
-Rougelike RPG dungeon crawler with a text-user interface and entity-component system architecture.
+Rougelike RPG dungeon crawler with a text-based user interface and entity-component system architecture.
 
+> [!NOTE]  
+> This project is under development.
+
+## How to run
+
+Clone the repo and be sure you have a copy of `cargo` installed and configured. From the root of the repo run
+
+```shell
+cargo run --release
+```
+
+This will collect dependencies and compile the program into a single binary before launching the game.
+
+## Support
+
+Source code is available online at https://github.com/brews/absolutechaos/. This software is open source and available under the MIT License.
 
 ## Acknowledgements
 

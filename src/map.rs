@@ -1,5 +1,5 @@
 use crate::rect::Rect;
-use rltk::{RGB, Rltk};
+use rltk::{RGB, RandomNumberGenerator, Rltk};
 use std::cmp::{max, min};
 
 #[derive(PartialEq, Copy, Clone)]
@@ -42,50 +42,58 @@ fn apply_vertical_tunnel(map: &mut [TileType], y1: i32, y2: i32, x: i32) {
     }
 }
 
-/// Construct a 80 x 50 map with rooms and corridors.
-pub fn new_map_rooms_and_corridors() -> Vec<TileType> {
+/// Construct a 80 x 50 map with random rooms and corridors.
+///
+/// Sets the maximum number of rooms and the minimum and maximum room sizes.
+pub fn new_map_rooms_and_corridors() -> (Vec<Rect>, Vec<TileType>) {
     let mut map = vec![TileType::Wall; 80 * 50];
 
-    let room1 = Rect::new(20, 15, 10, 15);
-    let room2 = Rect::new(35, 15, 10, 15);
+    let mut rooms: Vec<Rect> = Vec::new();
 
-    apply_room_to_map(&room1, &mut map);
-    apply_room_to_map(&room2, &mut map);
+    const MAX_ROOMS: i32 = 30;
+    const MIN_SIZE: i32 = 6;
+    const MAX_SIZE: i32 = 10;
 
-    apply_horizontal_tunnel(&mut map, 25, 40, 23);
+    let mut rng = RandomNumberGenerator::new();
 
-    map
-}
+    for _ in 0..MAX_ROOMS {
+        // Generate new rng room.
+        let w = rng.range(MIN_SIZE, MAX_SIZE);
+        let h = rng.range(MIN_SIZE, MAX_SIZE);
+        let x = rng.roll_dice(1, 80 - w - 1) - 1;
+        let y = rng.roll_dice(1, 50 - h - 1) - 1;
+        let new_room = Rect::new(x, y, w, h);
 
-/// Constructor to make a new map with random walls.
-pub fn new_map_test() -> Vec<TileType> {
-    let mut map = vec![TileType::Floor; 80 * 50];
+        // Use new rng room iff doesn't intersect with existing rooms.
+        let mut ok = true;
+        for other_room in rooms.iter() {
+            if new_room.intersect(other_room) {
+                ok = false
+            }
+        }
+        if ok {
+            apply_room_to_map(&new_room, &mut map);
 
-    // Make the boundary walls
-    for x in 0..80 {
-        map[xy_idx(x, 0)] = TileType::Wall;
-        map[xy_idx(x, 49)] = TileType::Wall;
-    }
-    for y in 0..50 {
-        map[xy_idx(0, y)] = TileType::Wall;
-        map[xy_idx(79, y)] = TileType::Wall;
-    }
+            if !rooms.is_empty() {
+                // Connect new room with last room.
+                let (new_x, new_y) = new_room.center();
+                let (prev_x, prev_y) = rooms[rooms.len() - 1].center();
 
-    // Randomly generate chunks of wall.
-    let mut rng = rltk::RandomNumberGenerator::new();
+                // RNG draw to see if start with horizontal or vertical tunnel first.
+                if rng.range(0, 2) == 1 {
+                    apply_horizontal_tunnel(&mut map, prev_x, new_x, prev_y);
+                    apply_vertical_tunnel(&mut map, prev_y, new_y, new_x);
+                } else {
+                    apply_vertical_tunnel(&mut map, prev_y, new_y, prev_x);
+                    apply_horizontal_tunnel(&mut map, prev_x, new_x, new_y);
+                }
+            }
 
-    for _i in 0..400 {
-        let x = rng.roll_dice(1, 79);
-        let y = rng.roll_dice(1, 49);
-        let idx = xy_idx(x, y);
-
-        // Ensure player start at center of the map isn't a wall.
-        if idx != xy_idx(40, 25) {
-            map[idx] = TileType::Wall;
+            rooms.push(new_room);
         }
     }
 
-    map
+    (rooms, map)
 }
 
 /// Draw map on screen.

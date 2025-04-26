@@ -1,14 +1,17 @@
-use rltk::{GameState, RGB, Rltk};
-use specs::{Builder, Join, World, WorldExt};
-
 mod components;
-pub use crate::components::{Player, Position, Renderable};
 mod map;
-pub use crate::map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
-
 mod player;
-pub use crate::player::player_input;
 mod rect;
+mod visibility_system;
+
+use rltk::{GameState, RGB, Rltk};
+use specs::prelude::*;
+
+pub use crate::components::{Player, Position, Renderable, Viewshed};
+pub use crate::map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
+pub use crate::player::player_input;
+
+use visibility_system::VisibilitySystem;
 
 pub struct State {
     pub ecs: World,
@@ -34,6 +37,9 @@ impl GameState for State {
 
 impl State {
     fn run_systems(&mut self) {
+        let mut vis = VisibilitySystem {};
+        vis.run_now(&self.ecs);
+
         self.ecs.maintain();
     }
 }
@@ -47,15 +53,17 @@ fn main() -> rltk::BError {
 
     let mut gs = State { ecs: World::new() };
 
+    // Register components
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
+    gs.ecs.register::<Viewshed>();
 
     let map = new_map_rooms_and_corridors();
     let (player_x, player_y) = map.rooms[0].center();
     gs.ecs.insert(map);
 
-    // Creating entities.
+    // Creating player entity.
     // Method chaining builder pattern.
     gs.ecs
         .create_entity()
@@ -69,6 +77,10 @@ fn main() -> rltk::BError {
             bg: RGB::named(rltk::BLACK),
         })
         .with(Player {})
+        .with(Viewshed {
+            visible_tiles: Vec::new(),
+            range: 8,
+        })
         .build();
 
     rltk::main_loop(context, gs)

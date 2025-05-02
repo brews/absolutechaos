@@ -1,4 +1,4 @@
-use super::{Map, Player, Position, State, TileType, Viewshed};
+use super::{Map, Player, Position, RunState, State, TileType, Viewshed};
 use rltk::{Rltk, VirtualKeyCode};
 use specs::{Join, World, WorldExt};
 use std::cmp::{max, min};
@@ -26,9 +26,9 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
 /// Translate key behavior to player movement in tick.
 ///
 /// Accepts direction keys, vi-like movement, or numpad.
-pub fn player_input(gs: &mut State, ctx: &mut Rltk) {
+pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     match ctx.key {
-        None => {} // When nothing happened.
+        None => return RunState::Paused, // When nothing happened.
         Some(key) => match key {
             VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
                 try_move_player(-1, 0, &mut gs.ecs)
@@ -42,7 +42,8 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) {
             VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
                 try_move_player(0, 1, &mut gs.ecs)
             }
-            _ => {}
+            _ => return RunState::Paused,
         },
     }
+    RunState::Running
 }

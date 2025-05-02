@@ -5,7 +5,7 @@ mod player;
 mod rect;
 mod visibility_system;
 
-use rltk::{GameState, RGB, Rltk};
+use rltk::{GameState, Point, RGB, Rltk};
 use specs::prelude::*;
 
 pub use crate::components::{Monster, Player, Position, Renderable, Viewshed};
@@ -120,8 +120,6 @@ fn main() -> rltk::BError {
             .build();
     }
 
-    gs.ecs.insert(map);
-
     // Creating player entity.
     // Method chaining builder pattern.
     gs.ecs
@@ -142,6 +140,10 @@ fn main() -> rltk::BError {
             dirty: true,
         })
         .build();
+
+    gs.ecs.insert(map);
+    // Add player position as a resource others can respond to.
+    gs.ecs.insert(Point::new(player_x, player_y));
 
     rltk::main_loop(context, gs)
 }

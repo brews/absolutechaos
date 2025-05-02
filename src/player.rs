@@ -1,11 +1,11 @@
 use super::{Map, Player, Position, RunState, State, TileType, Viewshed};
-use rltk::{Rltk, VirtualKeyCode};
+use rltk::{Point, Rltk, VirtualKeyCode};
 use specs::{Join, World, WorldExt};
 use std::cmp::{max, min};
 
 /// Attempt to change players position on map, respecting walls.
 ///
-/// If players are obstructed, change is ignored. Marks viewshed tiles as dirty.
+/// If players are obstructed, change is ignored. Marks viewshed tiles as dirty. Updates player position resource in ECS.
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
@@ -19,6 +19,11 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             pos.y = min(49, max(0, pos.y + delta_y));
 
             viewshed.dirty = true;
+
+            // Player position resource update accessible toothers.
+            let mut ppos = ecs.write_resource::<Point>();
+            ppos.x = pos.x;
+            ppos.y = pos.y;
         }
     }
 }

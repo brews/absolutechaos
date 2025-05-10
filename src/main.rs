@@ -8,7 +8,7 @@ mod visibility_system;
 use rltk::{GameState, Point, RGB, Rltk};
 use specs::prelude::*;
 
-pub use crate::components::{Monster, Player, Position, Renderable, Viewshed};
+pub use crate::components::{Monster, Name, Player, Position, Renderable, Viewshed};
 pub use crate::map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
 pub use crate::monster_ai_system::MonsterAI;
 pub use crate::player::player_input;
@@ -85,6 +85,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Monster>();
+    gs.ecs.register::<Name>();
 
     let map = new_map_rooms_and_corridors();
 
@@ -93,16 +94,22 @@ fn main() -> rltk::BError {
 
     // Spawn mobs in the middle of each room.
     let mut rng = rltk::RandomNumberGenerator::new();
-    for room in map.rooms.iter().skip(1) {
+    for (i, room) in map.rooms.iter().skip(1).enumerate() {
         let (x, y) = room.center();
 
         let glyph: rltk::FontCharType;
+        let name: String;
         let roll = rng.roll_dice(1, 2);
         match roll {
-            1 => glyph = rltk::to_cp437('g'),
-            _ => glyph = rltk::to_cp437('o'),
+            1 => {
+                glyph = rltk::to_cp437('g');
+                name = "Goblin".to_string();
+            }
+            _ => {
+                glyph = rltk::to_cp437('o');
+                name = "Orc".to_string();
+            }
         }
-
         gs.ecs
             .create_entity()
             .with(Position { x, y })
@@ -117,6 +124,9 @@ fn main() -> rltk::BError {
                 dirty: true,
             })
             .with(Monster {})
+            .with(Name {
+                name: format!("{} #{}", &name, i),
+            })
             .build();
     }
 
@@ -138,6 +148,9 @@ fn main() -> rltk::BError {
             visible_tiles: Vec::new(),
             range: 8,
             dirty: true,
+        })
+        .with(Name {
+            name: "Player".to_string(),
         })
         .build();
 

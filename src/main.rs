@@ -9,7 +9,9 @@ mod visibility_system;
 use rltk::{GameState, Point, RGB, Rltk};
 use specs::prelude::*;
 
-pub use components::{BlocksTile, Monster, Name, Player, Position, Renderable, Viewshed};
+pub use components::{
+    BlocksTile, CombatStats, Monster, Name, Player, Position, Renderable, Viewshed,
+};
 pub use map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
 pub use player::player_input;
 
@@ -93,6 +95,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
+    gs.ecs.register::<CombatStats>();
 
     let map = new_map_rooms_and_corridors();
 
@@ -135,6 +138,12 @@ fn main() -> rltk::BError {
                 name: format!("{} #{}", &name, i),
             })
             .with(BlocksTile {})
+            .with(CombatStats {
+                max_hp: 16,
+                hp: 16,
+                defense: 1,
+                power: 4,
+            })
             .build();
     }
 
@@ -159,6 +168,12 @@ fn main() -> rltk::BError {
         })
         .with(Name {
             name: "Player".to_string(),
+        })
+        .with(CombatStats {
+            max_hp: 30,
+            hp: 30,
+            defense: 2,
+            power: 5,
         })
         .build();
 

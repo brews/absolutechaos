@@ -1,7 +1,10 @@
+//! Logic for monster AI system.
+
 use crate::{Map, Monster, Name, Position, Viewshed};
 use rltk::{Point, console};
 use specs::prelude::*;
 
+/// System for monster NPC AI for an ECS.
 pub struct MonsterAI {}
 
 impl<'a> System<'a> for MonsterAI {
@@ -23,14 +26,20 @@ impl<'a> System<'a> for MonsterAI {
         {
             // Not sure why we need to reference/dereference player_pos here...
             if viewshed.visible_tiles.contains(&*player_pos) {
-                console::log(&format!("{} shouts insults", name.name));
-                // Find path to player, if visible.
+                let distance =
+                    rltk::DistanceAlg::Pythagoras.distance2d(Point::new(pos.x, pos.y), *player_pos);
+                if distance < 1.5 {
+                    // Attack logic here.
+                    console::log(&format!("{} shouts insults", name.name));
+                    return;
+                }
+
+                // Chase player if visible and successful path.
                 let path = rltk::a_star_search(
                     map.xy_idx(pos.x, pos.y) as i32,
                     map.xy_idx(player_pos.x, player_pos.y) as i32,
                     &mut *map,
                 );
-                // Chase player if visible and successful path.
                 // Path length > 1 because 0 step is always current location.
                 if path.success && path.steps.len() > 1 {
                     pos.x = path.steps[1] as i32 % map.width;

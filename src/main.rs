@@ -1,5 +1,6 @@
 mod components;
 mod map;
+mod map_indexing_system;
 mod monster_ai_system;
 mod player;
 mod rect;
@@ -8,8 +9,9 @@ mod visibility_system;
 use rltk::{GameState, Point, RGB, Rltk};
 use specs::prelude::*;
 
-pub use crate::components::{Monster, Name, Player, Position, Renderable, Viewshed};
+pub use crate::components::{BlocksTile, Monster, Name, Player, Position, Renderable, Viewshed};
 pub use crate::map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
+pub use crate::map_indexing_system::MapIndexingSystem;
 pub use crate::monster_ai_system::MonsterAI;
 pub use crate::player::player_input;
 
@@ -60,8 +62,12 @@ impl State {
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
+
         let mut mob = MonsterAI {};
         mob.run_now(&self.ecs);
+
+        let mut mapindex = MapIndexingSystem {};
+        mapindex.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -86,6 +92,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Viewshed>();
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
+    gs.ecs.register::<BlocksTile>();
 
     let map = new_map_rooms_and_corridors();
 
@@ -127,6 +134,7 @@ fn main() -> rltk::BError {
             .with(Name {
                 name: format!("{} #{}", &name, i),
             })
+            .with(BlocksTile {})
             .build();
     }
 

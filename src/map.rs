@@ -16,16 +16,27 @@ pub struct Map {
     pub height: i32,
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
+    pub blocked: Vec<bool>,
 }
 
 impl Map {
-    /// Check if tile at x, y is valid exit.
+    /// Populate self.blocked with bools indicating if tile is blocked (i.e. a wall).
+    pub fn populate_blocked(&mut self) {
+        for (i, tile) in self.tiles.iter_mut().enumerate() {
+            self.blocked[i] = *tile == TileType::Wall;
+        }
+    }
+
+    /// Check if tile at x, y is not blocking and  within the map, e.g. a wall, not an exit.
     fn is_exit_valid(&self, x: i32, y: i32) -> bool {
+        // False if x, y is outside map bounds.
+        // Need check first to prevent reading outside valid memory.
         if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 {
             return false;
         }
+
         let idx = self.xy_idx(x, y);
-        self.tiles[idx] != TileType::Wall
+        !self.blocked[idx]
     }
 
     /// Fetch idx for flattened vector of 2d map tiles.
@@ -117,6 +128,7 @@ pub fn new_map_rooms_and_corridors() -> Map {
         height: 50,
         revealed_tiles: vec![false; 80 * 50],
         visible_tiles: vec![false; 80 * 50],
+        blocked: vec![false; 80 * 50],
     };
 
     const MAX_ROOMS: i32 = 30;

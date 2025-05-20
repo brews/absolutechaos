@@ -17,9 +17,19 @@ pub struct Map {
     pub revealed_tiles: Vec<bool>,
     pub visible_tiles: Vec<bool>,
     pub blocked: Vec<bool>,
+    pub tile_content: Vec<Vec<Entity>>,
 }
 
 impl Map {
+    /// Clears content from all self.tile_content vectors.
+    ///
+    /// While this clears tile content, this has no guarantee that it will free up allocated memory.
+    pub fn clear_content_index(&mut self) {
+        for content in self.tile_content.iter_mut() {
+            content.clear();
+        }
+    }
+
     /// Populate self.blocked with bools indicating if tile is blocked (i.e. a wall).
     pub fn populate_blocked(&mut self) {
         for (i, tile) in self.tiles.iter_mut().enumerate() {
@@ -143,6 +153,7 @@ pub fn new_map_rooms_and_corridors() -> Map {
         revealed_tiles: vec![false; 80 * 50],
         visible_tiles: vec![false; 80 * 50],
         blocked: vec![false; 80 * 50],
+        tile_content: vec![Vec::new(); 80 * 50],
     };
 
     const MAX_ROOMS: i32 = 30;

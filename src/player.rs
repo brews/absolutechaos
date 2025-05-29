@@ -1,30 +1,46 @@
-use crate::{CombatStats, Map, Player, Position, RunState, State, Viewshed};
+use crate::{CombatStats, Map, Player, Position, RunState, State, Viewshed, WantsToMelee};
 use rltk::{Point, Rltk, VirtualKeyCode, console};
 use specs::{Join, World, WorldExt};
 use std::cmp::{max, min};
 
 /// Attempt to change players position on map, respecting walls.
 ///
-/// If players are obstructed, change is ignored. Marks viewshed tiles as dirty. Updates player position resource in ECS.
+/// If players are obstructed, change is ignored. Marks viewshed tiles as dirty. Updates player position resource in ECS. Movement also is used to attack.
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
     let combat_stats = ecs.read_storage::<CombatStats>();
     let map = ecs.fetch::<Map>();
+    let entities = ecs.entities();
+    let mut wants_to_melee = ecs.write_storage::<WantsToMelee>();
 
-    for (_player, pos, viewshed) in (&mut players, &mut positions, &mut viewsheds).join() {
+    for (entity, _player, pos, viewshed) in
+        (&entities, &players, &mut positions, &mut viewsheds).join()
+    {
+        // Do nothing if out of map bounds.
+        if pos.x + delta_x < 1
+            || pos.x + delta_x > map.width - 1
+            || pos.y + delta_y < 1
+            || pos.y + delta_y > map.height - 1
+        {
+            return;
+        }
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
 
         for potential_target in map.tile_content[destination_idx].iter() {
             let target = combat_stats.get(*potential_target);
-            match target {
-                None => {}
-                Some(t) => {
-                    // Attack!
-                    console::log(&format!("From Hell's Heart, I stab thee!"));
-                    return; // return player doesn't move after attacking.
-                }
+            // Creates WantsToAttack component, paint the attacker with it.
+            if let Some(_target) = target {
+                wants_to_melee
+                    .insert(
+                        entity,
+                        WantsToMelee {
+                            target: *potential_target,
+                        },
+                    )
+                    .expect("Add target failed");
+                return;
             }
         }
 

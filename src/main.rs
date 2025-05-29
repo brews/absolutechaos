@@ -1,6 +1,8 @@
 mod components;
+mod damage_system;
 mod map;
 mod map_indexing_system;
+mod melee_combat_system;
 mod monster_ai_system;
 mod player;
 mod rect;
@@ -10,12 +12,15 @@ use rltk::{GameState, Point, RGB, Rltk};
 use specs::prelude::*;
 
 pub use components::{
-    BlocksTile, CombatStats, Monster, Name, Player, Position, Renderable, Viewshed,
+    BlocksTile, CombatStats, Monster, Name, Player, Position, Renderable, SufferDamage, Viewshed,
+    WantsToMelee,
 };
 pub use map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
 pub use player::player_input;
 
+use damage_system::{DamageSystem, delete_the_dead};
 use map_indexing_system::MapIndexingSystem;
+use melee_combat_system::MeleeCombatSystem;
 use monster_ai_system::MonsterAI;
 use visibility_system::VisibilitySystem;
 
@@ -36,6 +41,8 @@ impl GameState for State {
         } else {
             self.runstate = player_input(self, ctx);
         }
+
+        delete_the_dead(&mut self.ecs);
 
         draw_map(&self.ecs, ctx);
 
@@ -61,6 +68,7 @@ pub enum RunState {
 }
 
 impl State {
+    /// Run ECS systems.
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
@@ -70,6 +78,12 @@ impl State {
 
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
+
+        let mut melee = MeleeCombatSystem {};
+        melee.run_now(&self.ecs);
+
+        let mut damage = DamageSystem {};
+        damage.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -96,6 +110,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<WantsToMelee>();
+    gs.ecs.register::<SufferDamage>();
 
     let map = new_map_rooms_and_corridors();
 

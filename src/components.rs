@@ -4,6 +4,12 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// Intent to attack a target.
+#[derive(Component, Debug, Clone)]
+pub struct WantsToMelee {
+    pub target: Entity,
+}
+
 /// Stats for combat.
 #[derive(Component, Debug)]
 pub struct CombatStats {
@@ -53,3 +59,24 @@ pub struct Viewshed {
 /// Is an NPC Monster.
 #[derive(Component, Debug)]
 pub struct Monster {}
+
+/// Suffered damage for an entity.
+#[derive(Component, Debug)]
+pub struct SufferDamage {
+    // Damage from multiple sources in a turn is pushed onto this vector.
+    pub amount: Vec<i32>,
+}
+
+impl SufferDamage {
+    /// Create or add an amount of damage to victim.
+    pub fn new_damage(store: &mut WriteStorage<SufferDamage>, victim: Entity, amount: i32) {
+        if let Some(suffering) = store.get_mut(victim) {
+            suffering.amount.push(amount);
+        } else {
+            let dmg = SufferDamage {
+                amount: vec![amount],
+            };
+            store.insert(victim, dmg).expect("Unable to insert damage");
+        }
+    }
+}

@@ -165,7 +165,8 @@ fn main() -> rltk::BError {
 
     // Creating player entity.
     // Method chaining builder pattern.
-    gs.ecs
+    let player_entity = gs
+        .ecs
         .create_entity()
         .with(Position {
             x: player_x,
@@ -193,6 +194,7 @@ fn main() -> rltk::BError {
         })
         .build();
 
+    gs.ecs.insert(player_entity);
     gs.ecs.insert(map);
     // Add player position as a resource others can respond to.
     gs.ecs.insert(Point::new(player_x, player_y));

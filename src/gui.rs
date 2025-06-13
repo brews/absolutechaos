@@ -1,7 +1,7 @@
 //! Logic for the GUI.
 
-use crate::{CombatStats, GameState, Map, Name, Player, Position, gamelog::GameLog};
-use rltk::{Console, MAGENTA, Point, RGB, Rltk};
+use crate::{CombatStats, Map, Name, Player, Position, gamelog::GameLog};
+use rltk::{Point, RGB, Rltk};
 use specs::prelude::*;
 
 /// Draws the GUI on screen.

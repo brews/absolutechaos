@@ -20,7 +20,7 @@ pub use components::{
 pub use map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
 pub use player::player_input;
 
-use damage_system::{DamageSystem, delete_the_dead};
+use damage_system::DamageSystem;
 use map_indexing_system::MapIndexingSystem;
 use melee_combat_system::MeleeCombatSystem;
 use monster_ai_system::MonsterAI;

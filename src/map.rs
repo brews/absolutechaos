@@ -3,6 +3,10 @@ use rltk::{Algorithm2D, BaseMap, Point, RGB, RandomNumberGenerator, Rltk};
 use specs::prelude::*;
 use std::cmp::{max, min};
 
+const MAPWIDTH: usize = 80;
+const MAPHEIGHT: usize = 43;
+const MAPCOUNT: usize = MAPHEIGHT * MAPWIDTH;
+
 #[derive(PartialEq, Copy, Clone)]
 pub enum TileType {
     Wall,
@@ -141,19 +145,19 @@ impl BaseMap for Map {
     }
 }
 
-/// Construct a 80 x 50 map with random rooms and corridors.
+/// Construct a map with random rooms and corridors.
 ///
 /// Sets the maximum number of rooms and the minimum and maximum room sizes.
 pub fn new_map_rooms_and_corridors() -> Map {
     let mut map = Map {
-        tiles: vec![TileType::Wall; 80 * 50],
+        tiles: vec![TileType::Wall; MAPCOUNT],
         rooms: Vec::new(),
-        width: 80,
-        height: 50,
-        revealed_tiles: vec![false; 80 * 50],
-        visible_tiles: vec![false; 80 * 50],
-        blocked: vec![false; 80 * 50],
-        tile_content: vec![Vec::new(); 80 * 50],
+        width: MAPWIDTH as i32,
+        height: MAPHEIGHT as i32,
+        revealed_tiles: vec![false; MAPCOUNT],
+        visible_tiles: vec![false; MAPCOUNT],
+        blocked: vec![false; MAPCOUNT],
+        tile_content: vec![Vec::new(); MAPCOUNT],
     };
 
     const MAX_ROOMS: i32 = 30;
@@ -202,7 +206,7 @@ pub fn new_map_rooms_and_corridors() -> Map {
     map
 }
 
-/// Render 80*50 map on screen.
+/// Render map on screen.
 pub fn draw_map(ecs: &World, ctx: &mut Rltk) {
     let map = ecs.fetch::<Map>();
 
@@ -234,7 +238,7 @@ pub fn draw_map(ecs: &World, ctx: &mut Rltk) {
 
         // Move the coordinates
         x += 1;
-        // Remember: Map is stored flat, row-major. Edge of screen is at 80, so might need to wrap.
+        // Remember: Map is stored flat, row-major. Edge of screen is at MAPWIDTH, so might need to wrap.
         if x > 79 {
             x = 0;
             y += 1;

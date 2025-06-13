@@ -1,5 +1,7 @@
 mod components;
 mod damage_system;
+mod gamelog;
+mod gui;
 mod map;
 mod map_indexing_system;
 mod melee_combat_system;
@@ -76,6 +78,7 @@ impl GameState for State {
                 ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph)
             }
         }
+        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
@@ -217,6 +220,9 @@ fn main() -> rltk::BError {
     // Add player position as a resource others can respond to.
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(RunState::PreRun);
+    gs.ecs.insert(gamelog::GameLog {
+        entries: vec!["Welcome to absolutechaos".to_string()],
+    });
 
     rltk::main_loop(context, gs)
 }

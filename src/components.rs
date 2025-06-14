@@ -4,13 +4,13 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
-/// Intent to attack a target.
+/// ECS component flagging intent to attack a target.
 #[derive(Component, Debug, Clone)]
 pub struct WantsToMelee {
     pub target: Entity,
 }
 
-/// Stats for combat.
+/// ECS component to hold combat stats.
 #[derive(Component, Debug)]
 pub struct CombatStats {
     pub max_hp: i32,
@@ -19,24 +19,24 @@ pub struct CombatStats {
     pub power: i32,
 }
 
-/// Blocks on the map.
+/// ECS component indicating block tiles on the map.
 #[derive(Component, Debug)]
 pub struct BlocksTile {}
 
-/// Has a name.
+/// ECS component to hold a name.
 #[derive(Component, Debug)]
 pub struct Name {
     pub name: String,
 }
 
-/// Has a position on the map.
+/// ECS component holding  a position on the map.
 #[derive(Component)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
 }
 
-/// Is rendered in UI.
+/// ECS component for things to be rendered in the UI.
 #[derive(Component)]
 pub struct Renderable {
     pub glyph: rltk::FontCharType,
@@ -44,11 +44,11 @@ pub struct Renderable {
     pub bg: RGB,
 }
 
-/// Is the player.
+/// ECS component flag the player charavter.
 #[derive(Component, Debug)]
 pub struct Player {}
 
-/// Has a viewshed or perspective of tiles.
+/// ECS component for entities with a viewshed or perspective of tiles on the map.
 #[derive(Component)]
 pub struct Viewshed {
     pub visible_tiles: Vec<rltk::Point>,
@@ -56,11 +56,11 @@ pub struct Viewshed {
     pub dirty: bool,
 }
 
-/// Is an NPC Monster.
+/// ECS component flagging entities that are an NPC Monster.
 #[derive(Component, Debug)]
 pub struct Monster {}
 
-/// Suffered damage for an entity.
+/// ECS component to hold the suffered damage for an entity.
 #[derive(Component, Debug)]
 pub struct SufferDamage {
     // Damage from multiple sources in a turn is pushed onto this vector.

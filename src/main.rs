@@ -8,9 +8,10 @@ mod melee_combat_system;
 mod monster_ai_system;
 mod player;
 mod rect;
+mod spawner;
 mod visibility_system;
 
-use rltk::{GameState, Point, RGB, Rltk};
+use rltk::{GameState, Point, Rltk};
 use specs::prelude::*;
 
 pub use components::{
@@ -138,82 +139,13 @@ fn main() -> rltk::BError {
 
     // Spawn player in center of first room.
     let (player_x, player_y) = map.rooms[0].center();
+    let player_entity = spawner::player(&mut gs.ecs, player_x, player_y);
 
-    // Spawn mobs in the middle of each room.
-    let mut rng = rltk::RandomNumberGenerator::new();
-    for (i, room) in map.rooms.iter().skip(1).enumerate() {
-        let (x, y) = room.center();
-
-        let glyph: rltk::FontCharType;
-        let name: String;
-        let roll = rng.roll_dice(1, 2);
-        match roll {
-            1 => {
-                glyph = rltk::to_cp437('g');
-                name = "Goblin".to_string();
-            }
-            _ => {
-                glyph = rltk::to_cp437('o');
-                name = "Orc".to_string();
-            }
-        }
-        gs.ecs
-            .create_entity()
-            .with(Position { x, y })
-            .with(Renderable {
-                glyph,
-                fg: RGB::named(rltk::RED),
-                bg: RGB::named(rltk::BLACK),
-            })
-            .with(Viewshed {
-                visible_tiles: Vec::new(),
-                range: 8,
-                dirty: true,
-            })
-            .with(Monster {})
-            .with(Name {
-                name: format!("{} #{}", &name, i),
-            })
-            .with(BlocksTile {})
-            .with(CombatStats {
-                max_hp: 16,
-                hp: 16,
-                defense: 1,
-                power: 4,
-            })
-            .build();
+    // Spawn monsters in the center of other rooms.
+    gs.ecs.insert(rltk::RandomNumberGenerator::new());
+    for room in map.rooms.iter().skip(1) {
+        spawner::spawn_room(&mut gs.ecs, room);
     }
-
-    // Creating player entity.
-    // Method chaining builder pattern.
-    let player_entity = gs
-        .ecs
-        .create_entity()
-        .with(Position {
-            x: player_x,
-            y: player_y,
-        })
-        .with(Renderable {
-            glyph: rltk::to_cp437('@'),
-            fg: RGB::named(rltk::YELLOW),
-            bg: RGB::named(rltk::BLACK),
-        })
-        .with(Player {})
-        .with(Viewshed {
-            visible_tiles: Vec::new(),
-            range: 8,
-            dirty: true,
-        })
-        .with(Name {
-            name: "Player".to_string(),
-        })
-        .with(CombatStats {
-            max_hp: 30,
-            hp: 30,
-            defense: 2,
-            power: 5,
-        })
-        .build();
 
     gs.ecs.insert(player_entity);
     gs.ecs.insert(map);

@@ -1,6 +1,10 @@
-use crate::{CombatStats, Map, Player, Position, RunState, State, Viewshed, WantsToMelee};
+use crate::{
+    CombatStats, Map, Player, Position, RunState, State, Viewshed, WantsToMelee,
+    components::{Item, WantsToPickupItem},
+    gamelog::GameLog,
+};
 use rltk::{Point, Rltk, VirtualKeyCode};
-use specs::{Join, World, WorldExt};
+use specs::{Entity, Join, World, WorldExt};
 use std::cmp::{max, min};
 
 /// Attempt to change players position on map, respecting walls.
@@ -83,8 +87,52 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             VirtualKeyCode::Numpad7 | VirtualKeyCode::Y => try_move_player(-1, -1, &mut gs.ecs),
             VirtualKeyCode::Numpad3 | VirtualKeyCode::N => try_move_player(1, 1, &mut gs.ecs),
             VirtualKeyCode::Numpad1 | VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
+
+            // Pickup item
+            VirtualKeyCode::G => get_item(&mut gs.ecs),
+
+            // Show inventory
+            VirtualKeyCode::I => return RunState::ShowInventory,
+
             _ => return RunState::AwaitInput,
         },
     }
     RunState::PlayerTurn
+}
+
+/// Process command to get item, checking if item exists, and telling the system the player wants to pick the item up.
+fn get_item(ecs: &mut World) {
+    let player_pos = ecs.fetch::<Point>();
+    let player_entity = ecs.fetch::<Entity>();
+    let entities = ecs.entities();
+    let items = ecs.read_storage::<Item>();
+    let positions = ecs.read_storage::<Position>();
+    let mut gamelog = ecs.fetch_mut::<GameLog>();
+
+    // Find target item if position matches with player.
+    let mut target_item: Option<Entity> = None;
+    for (item_entity, _item, position) in (&entities, &items, &positions).join() {
+        if position.x == player_pos.x && position.y == player_pos.y {
+            target_item = Some(item_entity);
+        }
+    }
+
+    // Tell system player wants to pickup the target item, or fail with gamelog message.
+    match target_item {
+        None => gamelog
+            .entries
+            .push("There is nothing here to pick up".to_string()),
+        Some(item) => {
+            let mut pickup = ecs.write_storage::<WantsToPickupItem>();
+            pickup
+                .insert(
+                    *player_entity,
+                    WantsToPickupItem {
+                        collected_by: *player_entity,
+                        item,
+                    },
+                )
+                .expect("Unable to insert want to pickup");
+        }
+    }
 }

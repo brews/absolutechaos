@@ -4,6 +4,35 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// ECS component indicating intent to use a potion.
+#[derive(Component, Debug)]
+pub struct WantsToDrinkPotion {
+    pub potion: Entity,
+}
+
+/// ECS component flagging the intent to pickup an item.
+#[derive(Component, Debug, Clone)]
+pub struct WantsToPickupItem {
+    pub collected_by: Entity,
+    pub item: Entity,
+}
+
+/// ECS component indicating an entity is stored in a backpack.
+#[derive(Component, Debug, Clone)]
+pub struct InBackpack {
+    pub owner: Entity,
+}
+
+/// ECS component flagging an in-game item.
+#[derive(Component, Debug)]
+pub struct Item {}
+
+/// ECS component for healing potions.
+#[derive(Component, Debug)]
+pub struct Potion {
+    pub heal_amount: i32,
+}
+
 /// ECS component flagging intent to attack a target.
 #[derive(Component, Debug, Clone)]
 pub struct WantsToMelee {

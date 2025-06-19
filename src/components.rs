@@ -77,6 +77,7 @@ pub struct Renderable {
     pub glyph: rltk::FontCharType,
     pub fg: RGB,
     pub bg: RGB,
+    pub render_order: i32,
 }
 
 /// ECS component flag the player charavter.

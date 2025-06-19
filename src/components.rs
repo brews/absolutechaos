@@ -4,16 +4,20 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// ECS component flagging that entity is consumable.
+#[derive(Component, Debug)]
+pub struct Consumable {}
+
 /// ECS component indicating intent to drop an item.
 #[derive(Component, Debug, Clone)]
 pub struct WantsToDropItem {
     pub item: Entity,
 }
 
-/// ECS component indicating intent to use a potion.
+/// ECS component indicating intent to use an item.
 #[derive(Component, Debug)]
-pub struct WantsToDrinkPotion {
-    pub potion: Entity,
+pub struct WantsToUseItem {
+    pub item: Entity,
 }
 
 /// ECS component flagging the intent to pickup an item.
@@ -33,9 +37,9 @@ pub struct InBackpack {
 #[derive(Component, Debug)]
 pub struct Item {}
 
-/// ECS component for healing potions.
+/// ECS component for entities that provide some kind of healing.
 #[derive(Component, Debug)]
-pub struct Potion {
+pub struct ProvidesHealing {
     pub heal_amount: i32,
 }
 

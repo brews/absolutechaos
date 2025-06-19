@@ -4,6 +4,12 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// ECS component indicating intent to drop an item.
+#[derive(Component, Debug, Clone)]
+pub struct WantsToDropItem {
+    pub item: Entity,
+}
+
 /// ECS component indicating intent to use a potion.
 #[derive(Component, Debug)]
 pub struct WantsToDrinkPotion {

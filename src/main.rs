@@ -12,7 +12,9 @@ mod rect;
 mod spawner;
 mod visibility_system;
 
-use components::{InBackpack, Item, Potion, WantsToDrinkPotion, WantsToPickupItem};
+use components::{
+    InBackpack, Item, Potion, WantsToDrinkPotion, WantsToDropItem, WantsToPickupItem,
+};
 use rltk::{GameState, Point, Rltk};
 use specs::prelude::*;
 
@@ -24,7 +26,7 @@ pub use map::{Map, TileType, draw_map, new_map_rooms_and_corridors};
 pub use player::player_input;
 
 use damage_system::DamageSystem;
-use inventory_system::{ItemCollectionSystem, PotionUseSystem};
+use inventory_system::{ItemCollectionSystem, ItemDropSystem, PotionUseSystem};
 use map_indexing_system::MapIndexingSystem;
 use melee_combat_system::MeleeCombatSystem;
 use monster_ai_system::MonsterAI;
@@ -102,6 +104,24 @@ impl GameState for State {
                     }
                 }
             }
+            RunState::ShowDropItem => {
+                let result = gui::drop_item_menu(self, ctx);
+                match result.0 {
+                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitInput,
+                    gui::ItemMenuResult::NoResponse => {}
+                    gui::ItemMenuResult::Selected => {
+                        let item_entity = result.1.unwrap();
+                        let mut intent = self.ecs.write_storage::<WantsToDropItem>();
+                        intent
+                            .insert(
+                                *self.ecs.fetch::<Entity>(),
+                                WantsToDropItem { item: item_entity },
+                            )
+                            .expect("Unable to insert intent");
+                        newrunstate = RunState::PlayerTurn;
+                    }
+                }
+            }
         }
 
         {
@@ -120,6 +140,7 @@ pub enum RunState {
     PlayerTurn,
     MonsterTurn,
     ShowInventory,
+    ShowDropItem,
 }
 
 impl State {
@@ -145,6 +166,9 @@ impl State {
 
         let mut potionuse = PotionUseSystem {};
         potionuse.run_now(&self.ecs);
+
+        let mut drop_items = ItemDropSystem {};
+        drop_items.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -175,6 +199,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<WantsToPickupItem>();
     gs.ecs.register::<InBackpack>();
     gs.ecs.register::<WantsToDrinkPotion>();
+    gs.ecs.register::<WantsToDropItem>();
 
     let map = new_map_rooms_and_corridors();
 

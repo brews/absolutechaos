@@ -4,6 +4,12 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// ECS component for entity with an area of effect (AOE).
+#[derive(Component, Debug)]
+pub struct AreaOfEffect {
+    pub radius: i32,
+}
+
 /// ECS component for some entity acting over a range.
 #[derive(Component, Debug)]
 pub struct Ranged {

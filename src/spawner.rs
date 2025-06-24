@@ -2,7 +2,7 @@
 
 use crate::{
     BlocksTile, CombatStats, Monster, Name, Player, Position, Renderable, Viewshed,
-    components::{Consumable, InflictsDamage, Item, ProvidesHealing, Ranged},
+    components::{AreaOfEffect, Consumable, InflictsDamage, Item, ProvidesHealing, Ranged},
     map::MAPWIDTH,
     rect::Rect,
 };
@@ -182,6 +182,26 @@ fn magic_missile_scroll(ecs: &mut World, x: i32, y: i32) {
         .build();
 }
 
+fn fireball_scroll(ecs: &mut World, x: i32, y: i32) {
+    ecs.create_entity()
+        .with(Position { x, y })
+        .with(Renderable {
+            glyph: rltk::to_cp437(')'),
+            fg: RGB::named(rltk::ORANGE),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 2,
+        })
+        .with(Name {
+            name: "Fireball Scroll".to_string(),
+        })
+        .with(Item {})
+        .with(Consumable {})
+        .with(Ranged { range: 6 })
+        .with(InflictsDamage { damage: 20 })
+        .with(AreaOfEffect { radius: 3 })
+        .build();
+}
+
 fn random_item(ecs: &mut World, x: i32, y: i32) {
     let roll: i32;
     {
@@ -190,6 +210,7 @@ fn random_item(ecs: &mut World, x: i32, y: i32) {
     }
     match roll {
         1 => health_potion(ecs, x, y),
+        2 => fireball_scroll(ecs, x, y),
         _ => magic_missile_scroll(ecs, x, y),
     }
 }

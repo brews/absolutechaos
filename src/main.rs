@@ -13,8 +13,8 @@ mod spawner;
 mod visibility_system;
 
 use components::{
-    Consumable, InBackpack, InflictsDamage, Item, ProvidesHealing, Ranged, WantsToDropItem,
-    WantsToPickupItem, WantsToUseItem,
+    AreaOfEffect, Consumable, InBackpack, InflictsDamage, Item, ProvidesHealing, Ranged,
+    WantsToDropItem, WantsToPickupItem, WantsToUseItem,
 };
 use rltk::{GameState, Point, Rltk};
 use specs::prelude::*;
@@ -236,6 +236,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<ProvidesHealing>();
     gs.ecs.register::<Ranged>();
     gs.ecs.register::<InflictsDamage>();
+    gs.ecs.register::<AreaOfEffect>();
 
     let map = new_map_rooms_and_corridors();
 

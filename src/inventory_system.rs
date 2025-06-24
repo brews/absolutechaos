@@ -2,7 +2,9 @@
 
 use crate::{
     CombatStats, InBackpack, Map, Name, Position, SufferDamage, WantsToPickupItem,
-    components::{Consumable, InflictsDamage, ProvidesHealing, WantsToDropItem, WantsToUseItem},
+    components::{
+        AreaOfEffect, Consumable, InflictsDamage, ProvidesHealing, WantsToDropItem, WantsToUseItem,
+    },
     gamelog::GameLog,
 };
 use specs::prelude::*;
@@ -64,6 +66,7 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, InflictsDamage>,
         WriteStorage<'a, CombatStats>,
         WriteStorage<'a, SufferDamage>,
+        ReadStorage<'a, AreaOfEffect>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -79,20 +82,52 @@ impl<'a> System<'a> for ItemUseSystem {
             inflict_damage,
             mut combat_stats,
             mut suffer_damage,
+            aoe,
         ) = data;
 
         for (entity, useitem, stats) in (&entities, &wants_use, &mut combat_stats).join() {
             let mut used_item = true;
+
+            // Targeting
+            let mut targets: Vec<Entity> = Vec::new();
+            match useitem.target {
+                // Use item on player if no target.
+                None => targets.push(*player_entity),
+                Some(target) => {
+                    let area_effect = aoe.get(useitem.item);
+                    match area_effect {
+                        None => {
+                            // Single target in tile.
+                            let idx = map.xy_idx(target.x, target.y);
+                            for mob in map.tile_content[idx].iter() {
+                                targets.push(*mob);
+                            }
+                        }
+                        Some(area_effect) => {
+                            // AoE - Works off viewshed from blastpoint to apply AoE.
+                            let mut blast_tiles =
+                                rltk::field_of_view(target, area_effect.radius, &*map);
+                            blast_tiles.retain(|p| {
+                                p.x > 0 && p.x < map.width - 1 && p.y > 0 && p.y < map.height - 1
+                            });
+                            for tile_idx in blast_tiles.iter() {
+                                let idx = map.xy_idx(tile_idx.x, tile_idx.y);
+                                for mob in map.tile_content[idx].iter() {
+                                    targets.push(*mob);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
             // If damaging, apply damage to target cell.
             let item_damages = inflict_damage.get(useitem.item);
             match item_damages {
                 None => {}
                 Some(damage) => {
-                    let target_point = useitem.target.unwrap();
-                    let idx = map.xy_idx(target_point.x, target_point.y);
                     used_item = false;
-                    for mob in map.tile_content[idx].iter() {
+                    for mob in targets.iter() {
                         SufferDamage::new_damage(&mut suffer_damage, *mob, damage.damage);
                         if entity == *player_entity {
                             let mob_name = names.get(*mob).unwrap();
@@ -124,12 +159,14 @@ impl<'a> System<'a> for ItemUseSystem {
                 }
             }
 
-            // If consumable item, delete it after use.
-            let consumable = consumables.get(useitem.item);
-            match consumable {
-                None => {}
-                Some(_) => {
-                    entities.delete(useitem.item).expect("Delete failed");
+            // If consumable item, delete after use.
+            if used_item {
+                let consumable = consumables.get(useitem.item);
+                match consumable {
+                    None => {}
+                    Some(_) => {
+                        entities.delete(useitem.item).expect("Delete failed");
+                    }
                 }
             }
         }

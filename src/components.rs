@@ -4,6 +4,12 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// ECS component flagging a confusion effect over a number of turns.
+#[derive(Component, Debug)]
+pub struct Confusion {
+    pub turns: i32,
+}
+
 /// ECS component for entity with an area of effect (AOE).
 #[derive(Component, Debug)]
 pub struct AreaOfEffect {

@@ -4,6 +4,18 @@ use rltk::RGB;
 use specs::prelude::*;
 use specs_derive::Component;
 
+/// ECS component for some entity acting over a range.
+#[derive(Component, Debug)]
+pub struct Ranged {
+    pub range: i32,
+}
+
+/// ECS component for an entity that inflicts damage.
+#[derive(Component, Debug)]
+pub struct InflictsDamage {
+    pub damage: i32,
+}
+
 /// ECS component flagging that entity is consumable.
 #[derive(Component, Debug)]
 pub struct Consumable {}
@@ -18,6 +30,7 @@ pub struct WantsToDropItem {
 #[derive(Component, Debug)]
 pub struct WantsToUseItem {
     pub item: Entity,
+    pub target: Option<rltk::Point>,
 }
 
 /// ECS component flagging the intent to pickup an item.

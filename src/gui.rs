@@ -437,7 +437,7 @@ pub fn main_menu(gs: &mut State, ctx: &mut Rltk) -> MainMenuResult {
                 24,
                 RGB::named(rltk::MAGENTA),
                 RGB::named(rltk::BLACK),
-                "Begin New Game",
+                "New Game",
             );
         } else {
             ctx.print_color_centered(

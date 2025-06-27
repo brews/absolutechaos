@@ -62,7 +62,7 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     }
 }
 
-/// Translate key behavior to player movement in tick.
+/// Handle and translate key behavior to player actions, movement in tick.
 ///
 /// Accepts direction keys, vi-like movement, or numpad.
 pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
@@ -96,6 +96,9 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
 
             // Show drop item menu
             VirtualKeyCode::D => return RunState::ShowDropItem,
+
+            // Save and quit.
+            VirtualKeyCode::Escape => return RunState::SaveGame,
 
             _ => return RunState::AwaitInput,
         },

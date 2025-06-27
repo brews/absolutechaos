@@ -174,6 +174,11 @@ impl GameState for State {
                     },
                 }
             }
+            RunState::SaveGame => {
+                newrunstate = RunState::MainMenu {
+                    menu_selection: gui::MainMenuSelection::LoadGame,
+                }
+            }
         }
 
         {
@@ -200,6 +205,7 @@ pub enum RunState {
     MainMenu {
         menu_selection: gui::MainMenuSelection,
     },
+    SaveGame,
 }
 
 impl State {

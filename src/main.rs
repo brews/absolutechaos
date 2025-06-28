@@ -9,15 +9,19 @@ mod melee_combat_system;
 mod monster_ai_system;
 mod player;
 mod rect;
+mod saveload_system;
 mod spawner;
 mod visibility_system;
 
 use components::{
     AreaOfEffect, Confusion, Consumable, InBackpack, InflictsDamage, Item, ProvidesHealing, Ranged,
-    WantsToDropItem, WantsToPickupItem, WantsToUseItem,
+    SerializationHelper, SerializeMe, WantsToDropItem, WantsToPickupItem, WantsToUseItem,
 };
 use rltk::{GameState, Point, Rltk};
-use specs::prelude::*;
+use specs::{
+    prelude::*,
+    saveload::{SimpleMarker, SimpleMarkerAllocator},
+};
 
 pub use components::{
     BlocksTile, CombatStats, Monster, Name, Player, Position, Renderable, SufferDamage, Viewshed,
@@ -169,12 +173,18 @@ impl GameState for State {
                     }
                     gui::MainMenuResult::Selected { selected } => match selected {
                         gui::MainMenuSelection::NewGame => newrunstate = RunState::PreRun,
-                        gui::MainMenuSelection::LoadGame => newrunstate = RunState::PreRun,
+                        gui::MainMenuSelection::LoadGame => {
+                            saveload_system::load_game(&mut self.ecs);
+                            newrunstate = RunState::AwaitInput;
+                            // Delete save because rougelikes have permadeath.
+                            saveload_system::delete_save();
+                        }
                         gui::MainMenuSelection::Quit => ::std::process::exit(0),
                     },
                 }
             }
             RunState::SaveGame => {
+                saveload_system::save_game(&mut self.ecs);
                 newrunstate = RunState::MainMenu {
                     menu_selection: gui::MainMenuSelection::LoadGame,
                 }
@@ -270,6 +280,10 @@ fn main() -> rltk::BError {
     gs.ecs.register::<InflictsDamage>();
     gs.ecs.register::<AreaOfEffect>();
     gs.ecs.register::<Confusion>();
+    gs.ecs.register::<SimpleMarker<SerializeMe>>();
+    gs.ecs.register::<SerializationHelper>();
+
+    gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 
     let map = new_map_rooms_and_corridors();
 
@@ -283,8 +297,8 @@ fn main() -> rltk::BError {
         spawner::spawn_room(&mut gs.ecs, room);
     }
 
-    gs.ecs.insert(player_entity);
     gs.ecs.insert(map);
+    gs.ecs.insert(player_entity);
     // Add player position as a resource others can respond to.
     gs.ecs.insert(Point::new(player_x, player_y));
     gs.ecs.insert(RunState::MainMenu {

@@ -1,81 +1,93 @@
 //! Components to use with ECS.
 
 use rltk::RGB;
+use serde::{Deserialize, Serialize};
+use specs::error::NoError;
 use specs::prelude::*;
-use specs_derive::Component;
+use specs::saveload::{ConvertSaveload, Marker};
+use specs_derive::*;
+
+/// Marker flagging that an entity should be serialized and deserialized when the game is loaded or saved.
+pub struct SerializeMe;
+
+/// Special ECS component to help serialize game data on saves, specifically the game map.
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct SerializationHelper {
+    pub map: crate::map::Map,
+}
 
 /// ECS component flagging a confusion effect over a number of turns.
-#[derive(Component, Debug)]
+#[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct Confusion {
     pub turns: i32,
 }
 
 /// ECS component for entity with an area of effect (AOE).
-#[derive(Component, Debug)]
+#[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct AreaOfEffect {
     pub radius: i32,
 }
 
 /// ECS component for some entity acting over a range.
-#[derive(Component, Debug)]
+#[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct Ranged {
     pub range: i32,
 }
 
 /// ECS component for an entity that inflicts damage.
-#[derive(Component, Debug)]
+#[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct InflictsDamage {
     pub damage: i32,
 }
 
 /// ECS component flagging that entity is consumable.
-#[derive(Component, Debug)]
+#[derive(Component, Serialize, Deserialize, Clone, Debug)]
 pub struct Consumable {}
 
 /// ECS component indicating intent to drop an item.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct WantsToDropItem {
     pub item: Entity,
 }
 
 /// ECS component indicating intent to use an item.
-#[derive(Component, Debug)]
+#[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct WantsToUseItem {
     pub item: Entity,
     pub target: Option<rltk::Point>,
 }
 
 /// ECS component flagging the intent to pickup an item.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct WantsToPickupItem {
     pub collected_by: Entity,
     pub item: Entity,
 }
 
 /// ECS component indicating an entity is stored in a backpack.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct InBackpack {
     pub owner: Entity,
 }
 
 /// ECS component flagging an in-game item.
-#[derive(Component, Debug)]
+#[derive(Component, Serialize, Deserialize, Clone, Debug)]
 pub struct Item {}
 
 /// ECS component for entities that provide some kind of healing.
-#[derive(Component, Debug)]
+#[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct ProvidesHealing {
     pub heal_amount: i32,
 }
 
 /// ECS component flagging intent to attack a target.
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, ConvertSaveload)]
 pub struct WantsToMelee {
     pub target: Entity,
 }
 
 /// ECS component to hold combat stats.
-#[derive(Component, Debug)]
+#[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct CombatStats {
     pub max_hp: i32,
     pub hp: i32,
@@ -84,24 +96,24 @@ pub struct CombatStats {
 }
 
 /// ECS component indicating block tiles on the map.
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct BlocksTile {}
 
 /// ECS component to hold a name.
-#[derive(Component, Debug)]
+#[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct Name {
     pub name: String,
 }
 
 /// ECS component holding  a position on the map.
-#[derive(Component)]
+#[derive(Component, ConvertSaveload, Clone)]
 pub struct Position {
     pub x: i32,
     pub y: i32,
 }
 
 /// ECS component for things to be rendered in the UI.
-#[derive(Component)]
+#[derive(Component, ConvertSaveload, Clone)]
 pub struct Renderable {
     pub glyph: rltk::FontCharType,
     pub fg: RGB,
@@ -110,11 +122,11 @@ pub struct Renderable {
 }
 
 /// ECS component flag the player charavter.
-#[derive(Component, Debug)]
+#[derive(Component, Serialize, Deserialize, Clone)]
 pub struct Player {}
 
 /// ECS component for entities with a viewshed or perspective of tiles on the map.
-#[derive(Component)]
+#[derive(Component, ConvertSaveload, Clone)]
 pub struct Viewshed {
     pub visible_tiles: Vec<rltk::Point>,
     pub range: i32,
@@ -122,11 +134,11 @@ pub struct Viewshed {
 }
 
 /// ECS component flagging entities that are an NPC Monster.
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Monster {}
 
 /// ECS component to hold the suffered damage for an entity.
-#[derive(Component, Debug)]
+#[derive(Component, Debug, ConvertSaveload, Clone)]
 pub struct SufferDamage {
     // Damage from multiple sources in a turn is pushed onto this vector.
     pub amount: Vec<i32>,

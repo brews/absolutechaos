@@ -1,6 +1,9 @@
 //! Logic for rectangle geometry.
 
+use serde::{Deserialize, Serialize};
+
 /// Rectangle for constructing rooms on map.
+#[derive(PartialEq, Copy, Clone, Serialize, Deserialize)]
 pub struct Rect {
     pub x1: i32,
     pub x2: i32,

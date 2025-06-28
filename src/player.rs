@@ -1,5 +1,5 @@
 use crate::{
-    CombatStats, Map, Player, Position, RunState, State, Viewshed, WantsToMelee,
+    CombatStats, Map, Player, Position, RunState, State, TileType, Viewshed, WantsToMelee,
     components::{Item, WantsToPickupItem},
     gamelog::GameLog,
 };
@@ -62,13 +62,14 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     }
 }
 
-/// Handle and translate key behavior to player actions, movement in tick.
+/// Handle and translate user inputs to player actions, movement in tick.
 ///
 /// Accepts direction keys, vi-like movement, or numpad.
 pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     match ctx.key {
         None => return RunState::AwaitInput, // When nothing happened.
         Some(key) => match key {
+            // Basic player movement.
             VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
                 try_move_player(-1, 0, &mut gs.ecs)
             }
@@ -82,28 +83,53 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
                 try_move_player(0, 1, &mut gs.ecs)
             }
 
-            // Diagonal directions
+            // Diagonal directions.
             VirtualKeyCode::Numpad9 | VirtualKeyCode::U => try_move_player(1, -1, &mut gs.ecs),
             VirtualKeyCode::Numpad7 | VirtualKeyCode::Y => try_move_player(-1, -1, &mut gs.ecs),
             VirtualKeyCode::Numpad3 | VirtualKeyCode::N => try_move_player(1, 1, &mut gs.ecs),
             VirtualKeyCode::Numpad1 | VirtualKeyCode::B => try_move_player(-1, 1, &mut gs.ecs),
 
-            // Pickup item
+            // Pickup item.
             VirtualKeyCode::G => get_item(&mut gs.ecs),
 
-            // Show inventory
+            // Show inventory.
             VirtualKeyCode::I => return RunState::ShowInventory,
 
-            // Show drop item menu
+            // Show drop item menu.
             VirtualKeyCode::D => return RunState::ShowDropItem,
 
             // Save and quit.
             VirtualKeyCode::Escape => return RunState::SaveGame,
 
+            // Level change.
+            VirtualKeyCode::Period => {
+                if try_next_level(&mut gs.ecs) {
+                    return RunState::NextLevel;
+                }
+            }
+
             _ => return RunState::AwaitInput,
         },
     }
     RunState::PlayerTurn
+}
+
+/// Attempt to send the player to the next level.
+///
+/// Push to message to ECS game log if player is unable.
+pub fn try_next_level(ecs: &mut World) -> bool {
+    let player_pos = ecs.fetch::<Point>();
+    let map = ecs.fetch::<Map>();
+    let player_idx = map.xy_idx(player_pos.x, player_pos.y);
+    if map.tiles[player_idx] == TileType::DownStairs {
+        true
+    } else {
+        let mut gamelog = ecs.fetch_mut::<GameLog>();
+        gamelog
+            .entries
+            .push("There is no way down to the next level from here.".to_string());
+        false
+    }
 }
 
 /// Process command to get item, checking if item exists, and telling the system the player wants to pick the item up.

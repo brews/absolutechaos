@@ -22,14 +22,14 @@ const MAX_MONSTERS: i32 = 4;
 
 /// Fills a room with pseudo randomly placed and choosen stuff. Both NPCs and items.
 #[allow(clippy::map_entry)] // Check hashmap for membership and then insert into it.
-pub fn spawn_room(ecs: &mut World, room: &Rect) {
-    let spawn_table = room_table();
+pub fn spawn_room(ecs: &mut World, room: &Rect, map_depth: i32) {
+    let spawn_table = room_table(map_depth);
     let mut spawn_points: HashMap<usize, String> = HashMap::new();
 
     // Scope prevents problems with borrow checker, which otherwise doesn't this mutable access to rng while also passing around ecs. Scope solves this because rng access gets dropped outside the scope where it's no longer needed.
     {
         let mut rng = ecs.write_resource::<RandomNumberGenerator>();
-        let num_spawns = rng.roll_dice(1, MAX_MONSTERS + 3) - 3;
+        let num_spawns = rng.roll_dice(1, MAX_MONSTERS + 3) + (map_depth - 1) - 3;
 
         // Keep adding monsters and then items at random, unoccupied positions until quotas filled.
         for _i in 0..num_spawns {
@@ -216,12 +216,12 @@ fn confusion_scroll(ecs: &mut World, x: i32, y: i32) {
         .build();
 }
 
-fn room_table() -> RandomTable {
+fn room_table(map_depth: i32) -> RandomTable {
     RandomTable::new()
         .add("Goblin", 10)
-        .add("Orc", 1)
+        .add("Orc", 1 + map_depth)
         .add("Health Potion", 7)
-        .add("Fireball Scroll", 2)
-        .add("Confusion Scroll", 2)
+        .add("Fireball Scroll", 2 + map_depth)
+        .add("Confusion Scroll", 2 + map_depth)
         .add("Magic Missile Scroll", 4)
 }

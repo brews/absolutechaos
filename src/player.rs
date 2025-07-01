@@ -108,6 +108,9 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
                 }
             }
 
+            // Skip turn.
+            VirtualKeyCode::Space | VirtualKeyCode::Numpad5 => return RunState::PlayerTurn,
+
             _ => return RunState::AwaitInput,
         },
     }

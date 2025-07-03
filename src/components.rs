@@ -16,6 +16,40 @@ pub struct SerializationHelper {
     pub map: crate::map::Map,
 }
 
+/// ECS component for entities that grant a melee power bonus.
+#[derive(Component, ConvertSaveload, Clone)]
+pub struct MeleePowerBonus {
+    pub power: i32,
+}
+
+/// ECS component for entities that grant a defense bonus.
+#[derive(Component, ConvertSaveload, Clone)]
+pub struct DefenseBonus {
+    pub defense: i32,
+}
+
+/// ECS component indicating that this entity is being held by another entity in an equipment slot.
+#[derive(Component, ConvertSaveload, Clone)]
+pub struct Equipped {
+    /// Entity that owns this entity.
+    pub owner: Entity,
+    /// Slot where this entity is equipped on the owner.
+    pub slot: EquipmentSlot,
+}
+
+/// Slots that Equipable entities can be equipped to.
+#[derive(PartialEq, Copy, Clone, Serialize, Deserialize)]
+pub enum EquipmentSlot {
+    Melee,
+    Shield,
+}
+
+/// ECS component for equipment that is equipable to an EquipmentSlot.
+#[derive(Component, Serialize, Deserialize, Clone)]
+pub struct Equipable {
+    pub slot: EquipmentSlot,
+}
+
 /// ECS component flagging a confusion effect over a number of turns.
 #[derive(Component, ConvertSaveload, Clone, Debug)]
 pub struct Confusion {

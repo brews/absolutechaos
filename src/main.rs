@@ -15,8 +15,9 @@ mod spawner;
 mod visibility_system;
 
 use components::{
-    AreaOfEffect, Confusion, Consumable, InBackpack, InflictsDamage, Item, ProvidesHealing, Ranged,
-    SerializationHelper, SerializeMe, WantsToDropItem, WantsToPickupItem, WantsToUseItem,
+    AreaOfEffect, Confusion, Consumable, DefenseBonus, Equipable, Equipped, InBackpack,
+    InflictsDamage, Item, MeleePowerBonus, ProvidesHealing, Ranged, SerializationHelper,
+    SerializeMe, WantsToDropItem, WantsToPickupItem, WantsToUseItem,
 };
 use rltk::{GameState, Point, Rltk};
 use specs::{
@@ -260,12 +261,13 @@ impl State {
         let player = self.ecs.read_storage::<Player>();
         let backpack = self.ecs.read_storage::<InBackpack>();
         let player_entity = self.ecs.fetch::<Entity>();
+        let equipped = self.ecs.read_storage::<Equipped>();
 
         let mut to_delete: Vec<Entity> = Vec::new();
         for entity in entities.join() {
             let mut should_delete = true;
 
-            // Don't delte the player.
+            // Don't delete the player.
             let p = player.get(entity);
             if let Some(_p) = p {
                 should_delete = false;
@@ -276,6 +278,14 @@ impl State {
             let bp = backpack.get(entity);
             if let Some(bp) = bp {
                 if bp.owner == *player_entity {
+                    should_delete = false;
+                }
+            }
+
+            // Don't delete player-equipped entities.
+            let eq = equipped.get(entity);
+            if let Some(eq) = eq {
+                if eq.owner == *player_entity {
                     should_delete = false;
                 }
             }
@@ -378,6 +388,10 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Confusion>();
     gs.ecs.register::<SimpleMarker<SerializeMe>>();
     gs.ecs.register::<SerializationHelper>();
+    gs.ecs.register::<Equipable>();
+    gs.ecs.register::<Equipped>();
+    gs.ecs.register::<MeleePowerBonus>();
+    gs.ecs.register::<DefenseBonus>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
 

@@ -111,6 +111,9 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             // Skip turn.
             VirtualKeyCode::Space | VirtualKeyCode::Numpad5 => return skip_turn(&mut gs.ecs),
 
+            // Show remove item menu.
+            VirtualKeyCode::R => return RunState::ShowRemoveItem,
+
             _ => return RunState::AwaitInput,
         },
     }

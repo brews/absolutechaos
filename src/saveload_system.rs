@@ -90,7 +90,8 @@ pub fn save_game(ecs: &mut specs::World) {
             Equipable,
             Equipped,
             MeleePowerBonus,
-            DefenseBonus
+            DefenseBonus,
+            WantsToRemoveItem
         );
     }
 
@@ -162,7 +163,8 @@ pub fn load_game(ecs: &mut World) {
             Equipable,
             Equipped,
             MeleePowerBonus,
-            DefenseBonus
+            DefenseBonus,
+            WantsToRemoveItem
         );
     }
 

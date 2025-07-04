@@ -78,6 +78,12 @@ pub struct InflictsDamage {
 #[derive(Component, Serialize, Deserialize, Clone, Debug)]
 pub struct Consumable {}
 
+/// ECS component indicating intent to remove an equipped item.
+#[derive(Component, ConvertSaveload, Debug, Clone)]
+pub struct WantsToRemoveItem {
+    pub item: Entity,
+}
+
 /// ECS component indicating intent to drop an item.
 #[derive(Component, ConvertSaveload, Debug, Clone)]
 pub struct WantsToDropItem {

@@ -28,10 +28,15 @@ impl RandomTable {
         }
     }
 
+    /// Add item with weighted spawn chance to table.
     pub fn add<S: ToString>(mut self, name: S, weight: i32) -> RandomTable {
-        self.total_weight += weight;
-        self.entries
-            .push(RandomEntry::new(name.to_string(), weight));
+        // Items with weight less than 0 are ignored.
+        if weight > 0 {
+            self.total_weight += weight;
+            self.entries
+                .push(RandomEntry::new(name.to_string(), weight));
+        }
+
         self
     }
 

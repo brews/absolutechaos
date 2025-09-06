@@ -2,8 +2,8 @@
 
 Rougelike RPG dungeon crawler with a text-based user interface and entity-component system architecture. Think [NetHack](https://en.wikipedia.org/wiki/NetHack), but poorly written.
 
-> [!NOTE]  
-> This project is under development.
+> [!IMPORTANT]
+> This repository is archived. The project has migrated to https://codeberg.org/brews/absolutechaos.
 
 ## How to run
 
